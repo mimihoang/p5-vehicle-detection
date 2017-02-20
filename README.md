@@ -72,7 +72,7 @@ The code for this is in cell #5 of the notebook. I restricted the search space t
 - extract features for that window
 - scale extracted features 
 - feed extracted features to classifier
-- predict if the window contains a car. If yes then I add that to the window list and return this list at the end
+- predict if the window contains a car. If yes and svc.decision_function(X) > threshold then I add that to the window list and return this list at the end
 
 
 ###### windows = slide_window(image, x_start_stop=[None, None], y_start_stop=[400, 700], xy_window=(64, 64), xy_overlap=(0.75, 0.75))
@@ -109,9 +109,7 @@ Here's a [link to my video result](./project_video_solution.mp4)
 
 #### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
-By using the sliding window search I was able to recorded the windows where the classifier detected a car. And since I had many overlapped windows, I used a heatmap, thresholded it and called scipy.ndimage.measurements.label to identify the vehicle positions. The goal is to combine multiple overlapped boxes into a single box that is a car. The code is located in cell #7 in the notebook. 
-
-Here are some examples of showing the original pictures, heatmap applied, and the bounding boxes.
+To reduce the false positives and negatives I combined the heat maps across the last 5 series of frames and then thresholded the combined heat map with threshold=4. After that I used scipy.ndimage.measurements.label on this combined heat map to identify the vehicle positions and turned many overlapped windows into one bounding box for each vehicle.  I also used svc.decision_function(X) > threshold to get a more confident prediction to ensure that only high confidence predictions are considered as vehicle detections. The code for this is located in cell #7 in the notebook. 
 
 ![][image5]
 
@@ -123,7 +121,7 @@ Here are some examples of showing the original pictures, heatmap applied, and th
 
 I spent a lot of times playing with the window settings together with the heatmap threshold in order to eliminate most of the false positive. 
 
-Currently the pipeline works relatively well. However, it can be improved more by making the window search/feature engineering to run more efficient. Also, I will work further eliminating the false positive and negative by keeping track of where the car was from the previous frame and used it to predict if it should be there in the current frame. 
+Currently the pipeline works relatively well. However, it can be improved more by making the window search/feature engineering to run more efficient. Also, I will work further eliminating the false positive and negative by keeping track of where the car was from the previous frames and used it to predict if it should be there in the current frame. There are some frames that the current pipeline not able to detect the car. I'll try to improve on that as well.
 
 There are many potential point of failures with the current pipeline if the video contains the followings:
 - Non car objects (ie: pedestrians)
